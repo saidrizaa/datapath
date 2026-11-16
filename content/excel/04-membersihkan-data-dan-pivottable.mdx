@@ -1,0 +1,92 @@
+## Tujuan
+
+Setelah mempelajari materi ini, Anda diharapkan mampu:
+- Membersihkan data mentah dari duplikat, spasi tersembunyi (termasuk karakter non-breaking `CHAR(160)`), dan kapitalisasi tidak seragam menggunakan fitur bawaan serta rumus `TRIM`, `CLEAN`, dan `SUBSTITUTE`.
+- Memahami perbedaan perilaku kapitalisasi antara Excel (tidak peka huruf besar/kecil) dengan `pandas` dan `SQL`, serta menjaga integritas input menggunakan **Data Validation** dan **Circle Invalid Data**.
+- Menggunakan **Power Query (`Change Type > Using Locale`)** untuk membersihkan kolom tanggal berformat campuran secara aman dari ambiguitas `dd/mm` vs `mm/dd`.
+- Membangun **PivotTable** dengan pengelompokan tanggal (**Months & Years**) beserta **Slicer** untuk merangkum transaksi secara interaktif.
+
+## Penjelasan
+
+> **Catatan Pengaturan Regional:** Contoh angka desimal (seperti `0.5`) dan argumen fungsi di materi ini memakai pemisah internasional (titik untuk desimal dan koma untuk argumen). Sesuaikan menjadi **koma (`0,5`)** dan **titik koma (`;`)** jika Excel Anda memakai pengaturan regional **Indonesia**.
+
+Data dari sistem kasir, formulir web, atau ekspor ERP jarang hadir dalam kondisi siap olah. Jika Anda langsung membuat PivotTable dari data yang kotor, cabang `"Jakarta Selatan"` dan `"  jakarta selatan "` akan terhitung sebagai dua cabang yang berbeda.
+
+### 1. Pembersihan Data Dasar di Spreadsheet
+
+- **Remove Duplicates (`Data > Remove Duplicates`)**: Menghapus baris ganda berdasarkan kolom kunci unik, misalnya `ID Transaksi`. Selalu pastikan Anda mencentang kolom kunci yang tepat agar tidak menghapus transaksi berbeda yang kebetulan terjadi pada tanggal yang sama.
+- **Perilaku Huruf Besar/Kecil (*Case Sensitivity*)**: Di Excel, **PivotTable dan Remove Duplicates TIDAK membedakan huruf besar/kecil** (*case-insensitive*), sehingga `"Jakarta Selatan"` dan `"JAKARTA SELATAN"` dianggap sama. Nilai hanya terpecah menjadi baris terpisah jika terdapat **spasi berlebih di awal, akhir, atau tengah teks**.
+  > **Catatan Lintas Alat (pandas & SQL):** Berbeda dengan Excel, di **`pandas` (Python)** maupun **`SQL` (PostgreSQL)** huruf besar dan kecil **dianggap berbeda** (*case-sensitive*). Membiasakan merapikan kapitalisasi dengan `PROPER` sejak di Excel menjaga konsistensi saat file diekspor ke Python atau database nanti.
+- **`TRIM`, `CLEAN`, dan `SUBSTITUTE(..., CHAR(160), " ")`**:
+  - `=TRIM(C2)` menghapus spasi ASCII biasa di awal, akhir, dan spasi ganda di tengah kata (menyisakan satu spasi antar kata).
+  - `=CLEAN(C2)` menghapus karakter non-cetak (seperti *line break* tersembunyi).
+  - **Spasi non-breaking (`CHAR(160)`)**: Data hasil salin-tempel dari halaman web sering membawa spasi non-breaking (`&nbsp;` / kode karakter `160`) yang **tidak bisa dihapus oleh `TRIM` maupun `CLEAN`**. Ubah terlebih dahulu dengan `SUBSTITUTE(C2, CHAR(160), " ")` sebelum menjalankan `TRIM`.
+  - Rumus lengkap yang aman:
+    ```excel
+    =PROPER(TRIM(CLEAN(SUBSTITUTE(C2, CHAR(160), " "))))
+    ```
+- **Data Validation (`Data > Data Validation`)**: Membatasi input baru dengan dropdown (*List*) untuk kolom `Cabang` atau batas angka `0` sampai `0.5` untuk kolom `Diskon`.
+  > **Penting:** Data Validation **hanya memvalidasi ketikan baru** dan **tidak otomatis memeriksa atau menghapus data lama** yang sudah terlanjur salah. Untuk menandai sel lama yang melanggar aturan, klik **Data > Data Validation > Circle Invalid Data**.
+
+### 2. Mengatasi Format Tanggal Campuran dengan Power Query
+
+Ketika satu kolom `Tanggal` berisi format campuran seperti `2026-03-14`, `14/03/2026`, dan `14-Mar-2026`, **jangan gunakan Text to Columns** karena fitur tersebut hanya bisa memproses satu pola urutan tanggal per eksekusi dan rentan merusak sebagian baris.
+
+Gunakan **Power Query (`Data > Get Data > From Text/CSV`)**:
+1. Di jendela Power Query Editor, rekam langkah pembersihan berulang (*Applied Steps*): hapus duplikat, *Trim*, *Clean*, dan rapikan kapitalisasi.
+2. Untuk kolom `Tanggal` campuran, klik ikon tipe data di header kolom lalu pilih **Using Locale...** (`Date`, lalu pilih locale yang sesuai format asal teksnya, misalnya **Indonesian (Indonesia)** atau **English (United Kingdom)**).
+   > **Peringatan Ambiguitas `dd/mm` vs `mm/dd`:** Tanggal seperti `04/03/2026` bisa berarti **4 Maret** (pola Indonesia/Inggris `dd/mm`) atau **3 April** (pola AS `mm/dd`). Jika Anda langsung mengubah tipe ke *Date* tanpa **Using Locale**, bulan dan tanggal pada baris ke-1 hingga ke-12 tiap bulan berisiko tertukar diam-diam!
+
+### 3. Merangkum Data dengan PivotTable, Date Grouping, & Slicer
+
+**PivotTable (`Insert > PivotTable`)** merangkum ratusan baris tanpa rumus berulang:
+- **Rows**: Kategori pengelompokan (misalnya `Cabang` atau `Tanggal`).
+- **Columns**: Pemecah ke kanan (misalnya `Kategori`).
+- **Values**: Metrik agregasi (misalnya `Sum of Jumlah` atau `Sum of Total Bersih`).
+- **Date Grouping (`Months` & `Years`)**: Ketika kolom `Tanggal` dimasukkan ke **Rows**, klik kanan salah satu tanggal di dalam PivotTable > pilih **Group...** > centang **Months** dan **Years**. Mengaktifkan keduanya memastikan data Januari tahun berbeda tidak tercampur menjadi satu baris.
+- **Slicer (`PivotTable Analyze > Insert Slicer`)**: Penyaring visual interaktif dengan tombol sekali klik.
+
+## Contoh
+
+Pada file **`penjualan-toko-kotor.csv`**, terdapat 525 baris (berisi 25 duplikat, spasi acak pada `Cabang` dan `Nama Sales`, kapitalisasi tidak seragam, serta format tanggal campuran).
+
+Urutan pembersihan hingga membangun PivotTable:
+1. Salin seluruh sheet asli sebagai cadangan (*backup*).
+2. Jalankan **Data > Remove Duplicates** dengan mencentang kolom `ID Transaksi` saja → 25 baris duplikat terhapus dan menyisakan 500 transaksi unik.
+3. Bersihkan teks `Cabang` melalui kolom bantu sementara:
+   ```excel
+   =PROPER(TRIM(CLEAN(SUBSTITUTE(C2, CHAR(160), " "))))
+   ```
+   Lalu lakukan **Copy > Paste Values** kembali ke kolom `Cabang` dan hapus kolom bantu.
+4. Untuk kolom `Tanggal` berformat campuran, muat data lewat **Power Query** dan konversi kolom `Tanggal` menggunakan **Change Type > Using Locale** (dengan pilihan locale `dd/mm/yyyy` sesuai sumbernya) agar tanggal seperti `04/03/2026` tidak tertukar dengan `mm/dd`.
+5. Setelah data bersih di Excel Table `tbl_penjualan` (Anda juga dapat mempertahankan rumus kolom `J:M` dan parameter `O1:P3` dari Pelajaran 2–3), klik **Insert > PivotTable**, letakkan `Tanggal` di **Rows** lalu **Group > Months & Years**, letakkan `Cabang` di **Columns**, `Jumlah` di **Values**, serta sisipkan **Slicer** untuk `Kategori`.
+
+## Latihan
+
+Unduh dataset versi kotor **`penjualan-toko-kotor.csv`** (dan gunakan `penjualan-toko.csv` sebagai pembanding hasil bersih) lalu kerjakan langkah berikut; file bersih yang Anda hasilkan dapat dilengkapi kolom `J:M` dan parameter `O1:P3` seperti tata letak Pelajaran 2–3 untuk dipakai pada Proyek Mini Pelajaran 5:
+
+1. Hapus seluruh baris duplikat menggunakan **Remove Duplicates** berdasarkan kolom `ID Transaksi`. Pastikan jumlah baris akhir tepat **500 baris data**.
+2. Bersihkan spasi berlebih, spasi non-breaking, dan kapitalisasi yang berantakan pada kolom `Cabang`, `Kategori`, dan `Nama Sales` menggunakan `=PROPER(TRIM(CLEAN(SUBSTITUTE(sel, CHAR(160), " "))))`.
+3. Terapkan **Data Validation** bertipe *List* pada kolom `Cabang` (`Jakarta Selatan, Bandung, Surabaya, Yogyakarta, Medan`), lalu jalankan **Data > Data Validation > Circle Invalid Data** untuk memverifikasi tidak ada nilai lama yang tertinggal di luar daftar resmi.
+4. Impor ulang atau rapikan kolom `Tanggal` campuran menggunakan **Power Query (`Change Type > Using Locale`)** agar terbaca konsisten dalam format `dd/mm/yyyy` tanpa tertukar `mm/dd`.
+5. Buat sebuah **PivotTable** baru di sheet terpisah yang mengelompokkan `Tanggal` berdasarkan **Months dan Years** di **Rows**, `Cabang` di **Columns**, dan `Sum of Jumlah` di **Values**, lalu tambahkan **Slicer** untuk kolom `Kategori`.
+
+<ExercisePlaceholder
+  exerciseType="sql"
+  title="Latihan SQL — Pembersihan Teks & Agregasi"
+  description="Kerangka latihan query SQL untuk membersihkan spasi dan kapitalisasi data kotor di browser."
+/>
+
+## Ringkasan
+
+- Di Excel, PivotTable dan Remove Duplicates tidak peka huruf besar/kecil (*case-insensitive*), tetapi spasi awal/akhir dan `CHAR(160)` memecah kategori menjadi baris berbeda; sementara di `pandas` dan `SQL`, kapitalisasi dianggap berbeda.
+- Gunakan `=PROPER(TRIM(CLEAN(SUBSTITUTE(sel, CHAR(160), " "))))` untuk pembersihan teks menyeluruh, dan gunakan **Circle Invalid Data** untuk memeriksa data lama setelah memasang **Data Validation**.
+- Hindari Text to Columns untuk format tanggal campuran; gunakan **Power Query (`Using Locale`)** agar `dd/mm` dan `mm/dd` tidak tertukar, lalu kelompokkan tanggal di PivotTable dengan **Group > Months & Years**.
+
+## Sumber Resmi
+
+- [Menemukan dan Menghapus Data Duplikat — Microsoft Support (bahasa Inggris)](https://support.microsoft.com/en-us/office/find-and-remove-duplicates-00e35bea-b46a-4d5d-b28e-66a552dc138d)
+- [Fungsi TRIM — Microsoft Support (bahasa Inggris)](https://support.microsoft.com/en-us/office/trim-function-410388fa-c5df-49c6-b16c-9e5630b479f9)
+- [Tentang Power Query di Excel — Microsoft Support (bahasa Inggris)](https://support.microsoft.com/en-us/office/about-power-query-in-excel-7104fbee-9e62-4cb9-a02e-5bfb1a6c536a)
+- [Membuat PivotTable untuk Menganalisis Data Lembar Kerja — Microsoft Support (bahasa Inggris)](https://support.microsoft.com/en-us/office/create-a-pivottable-to-analyze-worksheet-data-a9a84538-bfe9-40a9-a8e9-f99134456576)
+- [Gunakan Slicer untuk Menyaring Data — Microsoft Support (bahasa Inggris)](https://support.microsoft.com/en-us/office/use-slicers-to-filter-data-249f966b-a9d5-4b0f-b31a-12651785d29d)

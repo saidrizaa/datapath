@@ -1,0 +1,129 @@
+## Tujuan
+
+Setelah mempelajari materi ini, Anda diharapkan mampu:
+- Membedakan tipe data utama di Excel (angka, teks, tanggal, dan logika) serta mengenali dampaknya terhadap perhitungan rumus.
+- Mengubah rentang sel biasa menjadi **Excel Table** (`Ctrl + T`) agar pengelolaan data lebih aman dan dinamis.
+- Melakukan pengurutan (**Sort**) dan penyaringan (**Filter**) multi-kolom untuk menjawab pertanyaan operasional cepat.
+- Menerapkan tiga aturan **Tidy Data** menurut Hadley Wickham beserta praktik kebersihan spreadsheet tambahan sebelum menyusun rumus atau grafik apa pun.
+
+## Penjelasan
+
+> **Catatan Penulisan Angka & Rumus:** Seluruh contoh angka desimal dan rumus di materi DataPath menggunakan standar internasional—pemisah desimal berupa **titik (`.`)** seperti `0.15`, dan pemisah argumen rumus berupa **koma (`,`)**. Jika Excel Anda memakai pengaturan regional **Indonesia**, sesuaikan desimal menjadi **koma (`,`)** (misalnya `0,15`) dan pemisah argumen rumus menjadi **titik koma (`;`)**.
+
+Banyak pemula mengira kesulitan analisis data di Excel berasal dari rumus yang rumit. Padahal, sebagian besar masalah justru muncul karena struktur tabel awalnya tidak rapi—misalnya angka yang tersimpan sebagai teks, dua variabel digabung ke dalam satu kolom, atau tabel transaksi dicampur dengan tabel referensi.
+
+### 1. Empat Tipe Data Dasar di Excel
+
+Excel mengenali nilai di dalam sel ke dalam empat kelompok utama:
+
+| Tipe Data | Contoh | Ciri Perataan Bawaan | Catatan Analisis |
+| :--- | :--- | :--- | :--- |
+| **Angka (Number)** | `1850000`, `0.15` | Rata kanan | Bisa dihitung dengan `SUM`, `AVERAGE`, dan grafik numerik |
+| **Teks (Text)** | `Jakarta Selatan`, `TRX-2026-0001` | Rata kiri | Tidak bisa dijumlahkan meski berisi digit kode |
+| **Tanggal & Waktu** | `2026-01-14` | Rata kanan | Di balik layar disimpan sebagai nomor seri harian |
+| **Logika (Boolean)** | `TRUE`, `FALSE` | Rata tengah | Hasil perbandingan seperti `=F2>5` |
+
+Jika Anda menjumpai angka atau tanggal yang menempel di sisi kiri sel, besar kemungkinan Excel membacanya sebagai teks. Akibatnya, fungsi penjumlahan akan melewatkan sel tersebut tanpa peringatan.
+
+### 2. Tiga Aturan Tidy Data (Hadley Wickham)
+
+Dalam makalah klasiknya *"Tidy Data"* (2014), Hadley Wickham merumuskan tiga aturan struktural agar dataset mudah diolah oleh Excel, SQL, maupun Python:
+
+1. **Setiap variabel membentuk satu kolom (*one variable per column*)**: Jangan menggabungkan cabang dan nama sales dalam satu sel seperti `"Bandung - Rina"`. Pisahkan menjadi kolom `Cabang` dan `Nama Sales`.
+2. **Setiap observasi membentuk satu baris (*one observation per row*)**: Pada dataset **Penjualan Toko**, setiap satu baris mewakili tepat satu transaksi dengan `ID Transaksi` unik.
+3. **Setiap jenis unit observasi membentuk satu tabel (*each type of observational unit forms a table*)**: Data transaksi penjualan harian disimpan pada tabel transaksi utama, sedangkan atribut kategori seperti daftar persentase margin tiap kategori dipisahkan ke tabel/sheet referensi tersendiri (yang akan Anda bangun dengan nama **`Referensi_Kategori`** di Pelajaran 3) agar tidak berulang secara redundan di ribuan baris transaksi.
+
+### 3. Praktik Kebersihan Spreadsheet Tambahan
+
+Selain ketiga aturan Wickham di atas, di Microsoft Excel Anda juga wajib menjaga kebersihan tata letak berikut agar fitur PivotTable dan rumus tidak rusak:
+
+- **Hindari sel gabungan (*merged cells*)** dan judul tabel bertingkat di dalam area data utama.
+- **Jangan menyisipkan baris "Subtotal" atau "Total"** di tengah-tengah daftar transaksi mentah; letakkan ringkasan di area terpisah atau gunakan PivotTable.
+
+### 4. Mengapa Harus Menggunakan Excel Table (`Ctrl + T`)
+
+Alih-alih membiarkan data berupa rentang biasa (`A1:I501`), ubahlah menjadi **Excel Table** melalui pintasan `Ctrl + T` (Windows) atau `Cmd + T` (Mac):
+
+- Baris judul tetap terlihat di kepala kolom saat Anda menggulir ke bawah.
+- Rumus yang Anda tulis di satu baris akan otomatis disalin hingga baris terbawah tabel.
+- Saat ada transaksi baru di baris ke-502, rentang tabel ikut meluas secara otomatis tanpa perlu mengubah referensi PivotTable atau grafik.
+
+> **Catatan Aplikasi:** Fitur **Excel Table** beserta pintasan `Ctrl + T` (yang otomatis memberi nama tabel terstruktur dan memperluas rentang rumus/PivotTable) tersedia secara khusus di **Microsoft Excel**.
+
+### 5. Sort & Filter Multi-Kriteria
+
+Di dalam Excel Table, tombol panah kecil (*filter dropdown*) muncul otomatis di setiap nama kolom. Anda bisa:
+- Mengurutkan (**Sort**) kolom `Tanggal` dari terlama ke terbaru, lalu menambah level urutan kedua berdasarkan `Harga Satuan` dari terbesar ke terkecil melalui menu **Data > Sort**.
+- Menyaring (**Filter**) transaksi tertentu, misalnya hanya cabang `Surabaya` untuk kategori `Elektronik` dengan jumlah beli di atas 5 unit (*Number Filters > Greater Than*).
+
+## Contoh
+
+Misalkan manajer operasional meminta Anda mencari **3 transaksi dengan jumlah pembelian terbanyak di cabang Bandung untuk kategori Elektronik** dari file `penjualan-toko.csv`.
+
+Langkah kerjanya di Microsoft Excel:
+1. Buka `penjualan-toko.csv` di Excel lalu tekan `Ctrl + T`, pastikan opsi *My table has headers* tercentang, lalu klik **OK**.
+2. Klik panah filter pada kolom **Cabang**, hilangkan centang *(Select All)*, lalu centang **Bandung** saja.
+3. Klik panah filter pada kolom **Kategori**, lalu pilih **Elektronik**.
+4. Klik panah filter pada kolom **Jumlah**, lalu pilih **Sort Largest to Smallest**.
+5. Tiga baris teratas yang terlihat langsung menjawab permintaan manajer tanpa menulis satu baris rumus pun, dan angka di kolom **Jumlah** serta **Harga Satuan** tetap rata kanan (valid sebagai angka).
+
+## Latihan
+
+Unduh dataset bersih **Penjualan Toko (`penjualan-toko.csv`)** pada panel dataset di halaman ini, lalu praktikkan langkah berikut di **Microsoft Excel** (simpan file kerja Anda karena akan dilanjutkan pada Pelajaran 2 dan 3):
+
+1. Buka/impor berkas CSV di Microsoft Excel dan pastikan seluruh 500 baris transaksi terbaca rapi ke dalam 9 kolom (`A` sampai `I`: `ID Transaksi` hingga `Nama Sales`).
+2. Ubah seluruh rentang data (`A1:I501`) menjadi **Excel Table** (`Ctrl + T`) dan beri nama tabel `tbl_penjualan` di tab **Table Design**.
+3. Periksa perataan teks dan angka pada kolom `Tanggal`, `Jumlah`, `Harga Satuan`, dan `Diskon` untuk memastikan tidak ada angka yang tersimpan sebagai teks.
+4. Saring data khusus bulan **Maret 2026** untuk cabang **Jakarta Selatan**, lalu urutkan dari `Harga Satuan` tertinggi ke terendah. Catat berapa baris transaksi yang muncul di bilah status bawah Excel, lalu tekan **Clear Filter** agar seluruh 500 baris kembali tampil sebelum menyimpan file.
+
+### Latihan Interaktif di Browser
+
+Uji pemahaman pengolahan tabel transaksi langsung di browser tanpa instalasi tambahan menggunakan editor Python dan SQL berikut:
+
+<EditorPython
+  lessonId="excel-01"
+  exerciseId="py-01"
+  title="Hitung Total Penjualan dengan pandas"
+  description="Lengkapi kode di bawah untuk membuat DataFrame pandas dari list transaksi, menambahkan kolom total (jumlah * harga), lalu mencetak total seluruh penjualan."
+  initialCode={`import pandas as pd
+
+transaksi = [
+    {"produk": "Monitor IPS", "jumlah": 2, "harga": 1850000},
+    {"produk": "Keyboard TKL", "jumlah": 3, "harga": 540000},
+    {"produk": "Mouse Wireless", "jumlah": 2, "harga": 200000},
+]
+
+df = pd.DataFrame(transaksi)
+# Hitung kolom "total" = jumlah * harga, lalu cetak jumlah seluruh total
+df["total"] = 0
+print(int(df["total"].sum()))`}
+  expectedOutput="5720000"
+  hint="Ubah baris df['total'] = 0 menjadi df['total'] = df['jumlah'] * df['harga']"
+/>
+
+<LatihanSQL
+  lessonId="excel-01"
+  exerciseId="sql-01"
+  title="Agregasi Omzet per Cabang (Dataset Penjualan Toko)"
+  description="Tulis query SQL untuk menghitung total omzet kotor (SUM(jumlah * harga_satuan)) per cabang dari tabel penjualan, lalu urutkan dari total terbesar ke terkecil."
+  initialQuery={`SELECT cabang, SUM(jumlah * harga_satuan) AS total
+FROM penjualan
+-- Tambahkan GROUP BY dan ORDER BY di bawah ini
+`}
+  referenceQuery="SELECT cabang, SUM(jumlah * harga_satuan) AS total FROM penjualan GROUP BY cabang ORDER BY total DESC;"
+  hint="Gunakan klausa GROUP BY cabang diikuti ORDER BY total DESC;"
+/>
+
+## Ringkasan
+
+- Tipe data menentukan apakah sebuah sel bisa dihitung (`SUM`/`AVERAGE`) atau diurutkan secara kronologis.
+- Tiga aturan *tidy data* menurut Hadley Wickham adalah: satu variabel per kolom, satu observasi per baris, dan satu jenis unit observasi per tabel (tabel referensi seperti `Referensi_Kategori` dipisah dari tabel transaksi).
+- Di spreadsheet, lengkapi prinsip *tidy data* dengan menghindari *merged cells* serta baris subtotal di tengah data mentah.
+- Mengonversi data menjadi **Excel Table (`Ctrl + T`)** membuat penyaringan, pengurutan, dan perluasan data baru jauh lebih aman.
+
+## Sumber Resmi
+
+- [Ringkasan Tabel Excel — Microsoft Support (bahasa Inggris)](https://support.microsoft.com/en-us/office/overview-of-excel-tables-7ab0bb7d-3a9e-4b56-a3c9-6c94334e492c)
+- [Mengurutkan Data di Rentang atau Tabel Excel — Microsoft Support (bahasa Inggris)](https://support.microsoft.com/en-us/office/sort-data-in-a-range-or-table-62d0b95d-2a90-4610-a6ae-2e545c4a4654)
+- [Menyaring Data di Rentang atau Tabel Excel — Microsoft Support (bahasa Inggris)](https://support.microsoft.com/en-us/office/filter-data-in-a-range-or-table-01832226-31b5-4568-8806-38c37dcc180e)
+- Bacaan lanjutan: [Makalah Asli Prinsip Tidy Data — Hadley Wickham (Journal of Statistical Software) (bahasa Inggris)](https://www.jstatsoft.org/article/view/v059i10)

@@ -1,0 +1,127 @@
+## Tujuan
+
+Setelah mempelajari materi ini, Anda diharapkan mampu:
+- Menghitung agregasi multi-kriteria dengan `SUMIFS`, `COUNTIFS`, dan `AVERAGEIFS` serta memahami bedanya dengan `SUMIF` tunggal.
+- Menyederhanakan cabang logika bertingkat menggunakan `IFS`, `AND`, dan `OR` (beserta alternatif untuk versi Excel lama).
+- Menggabungkan informasi antar-tabel menggunakan `XLOOKUP` serta memahami padanan kompatibelnya (`INDEX-MATCH` dan `VLOOKUP`).
+
+## Penjelasan
+
+> **Catatan Pengaturan Regional:** Seluruh contoh rumus di bawah ini menggunakan pemisah argumen **koma (`,`)** dan desimal **titik (`.`)**. Jika Excel Anda memakai pengaturan regional **Indonesia**, ubah pemisah argumen menjadi **titik koma (`;`)** dan desimal menjadi **koma (`,`)**, misalnya `0,1` dan `=COUNTIFS(C2:C501; "Medan"; H2:H501; ">=0,1")`.
+
+Dalam pekerjaan analis data, pertanyaan bisnis hampir selalu memiliki syarat. Manajemen jarang bertanya *"berapa total unit terjual?"*, melainkan *"berapa unit terjual di cabang Surabaya selama bulan Februari untuk kategori Elektronik?"*. Di sinilah fungsi bersyarat dan fungsi lookup berperan.
+
+### 1. Agregasi Bersyarat: `SUMIFS`, `COUNTIFS`, dan `AVERAGEIFS`
+
+Fungsi jamak berakhiran **`-IFS`** mendukung satu hingga puluhan kriteria sekaligus. Perhatikan perbedaan posisi argumennya:
+- **`SUMIFS`** dan **`AVERAGEIFS`** selalu meletakkan **rentang nilai yang akan dihitung** (`rentang_jumlah` / `rentang_rata2`) di **argumen pertama**, lalu diikuti pasangan `(rentang_kriteria, kriteria)`.
+- **`COUNTIFS`** hanya menghitung jumlah baris yang cocok sehingga tidak membutuhkan rentang angka target—**argumen pertamanya langsung berupa pasangan `rentang_kriteria1, kriteria1`**.
+- **Hati-hati dengan `SUMIF` (tunggal)**: berbeda dari `SUMIFS`, fungsi kondisi tunggal `=SUMIF(rentang_kriteria, kriteria, [rentang_jumlah])` justru menaruh **`rentang_jumlah` (`sum_range`) di argumen paling akhir**.
+
+```excel
+=SUMIFS(rentang_jumlah, rentang_kriteria1, kriteria1, rentang_kriteria2, kriteria2)
+=AVERAGEIFS(rentang_rata2, rentang_kriteria1, kriteria1, rentang_kriteria2, kriteria2)
+=COUNTIFS(rentang_kriteria1, kriteria1, rentang_kriteria2, kriteria2)
+```
+
+Untuk kriteria berbasis angka, gabungkan operator perbandingan di dalam tanda kutip seperti `">5"`. Sedangkan untuk **kriteria tanggal**, hindari menulis teks tanggal langsung; gabungkan operator perbandingan dengan acuan sel parameter tanggal **`$P$3`** (yang sudah berisi `=DATE(2026,3,1)`) seperti **`">="&$P$3`**, atau tulis `">="&DATE(2026,3,1)` agar rumus tetap aman di berbagai pengaturan tanggal sistem.
+
+### 2. Logika Bertingkat: `IFS`, `AND`, dan `OR`
+
+Daripada menumpuk `IF(IF(IF(...)))` yang sulit dibaca, pengguna **Excel 2019, Excel 2021, atau Microsoft 365** dapat memakai `IFS`:
+
+```excel
+=IFS(J2>=10000000, "Prioritas A", J2>=3000000, "Prioritas B", TRUE, "Reguler")
+```
+
+Baris terakhir `TRUE, "Reguler"` berfungsi sebagai penangkap kondisi sisa (*fallback*) agar tidak muncul error `#N/A` bila semua syarat sebelumnya tidak terpenuhi.
+
+> **Catatan Kompatibilitas Versi Excel:**
+> - **`XLOOKUP`** tidak tersedia di **Excel 2019 ke bawah** (hanya ada di **Microsoft 365** dan **Excel 2021 ke atas**).
+> - **`IFS`** tidak tersedia di **Excel 2016 ke bawah** (baru tersedia mulai **Excel 2019**, **Excel 2021**, dan **Microsoft 365**).
+>
+> Jika versi Excel Anda belum mendukung `IFS`, gunakan **`IF` bersarang (*nested IF*)** sebagai gantinya:
+> `=IF(J2>=10000000, "Prioritas A", IF(J2>=3000000, "Prioritas B", "Reguler"))`
+
+Sementara itu, `AND` bernilai `TRUE` jika **semua** kondisi benar, dan `OR` bernilai `TRUE` jika **minimal satu** kondisi benar:
+```excel
+=IF(AND(C2="Jakarta Selatan", H2>=0.1), "Promo Utama Jaksel", "Lainnya")
+```
+
+### 3. Mengambil Data Antar-Tabel: `XLOOKUP`, `INDEX-MATCH`, dan `VLOOKUP`
+
+Sesuai aturan ketiga *tidy data* di Pelajaran 1, tabel referensi kategori disimpan pada sheet terpisah bernama **`Referensi_Kategori`** agar tidak mengulang persentase margin secara manual di setiap baris transaksi.
+
+- **`XLOOKUP` (Microsoft 365 / Excel 2021 ke atas)**:
+  ```excel
+  =XLOOKUP(nilai_dicari, kolom_pencarian, kolom_hasil, "Tidak Ditemukan")
+  ```
+  Keunggulannya: bisa mencari ke kiri maupun ke kanan, tidak rusak jika ada kolom baru disisipkan, dan memiliki argumen bawaan saat nilai tidak ditemukan.
+
+- **`INDEX-MATCH` (Alternatif utama untuk Excel 2019 ke bawah)**:
+  ```excel
+  =INDEX(kolom_hasil, MATCH(nilai_dicari, kolom_pencarian, 0))
+  ```
+  `MATCH(..., 0)` mencari nomor urut baris yang cocok persis, lalu `INDEX` mengambil nilai pada nomor baris tersebut dari kolom mana saja (bisa ke kiri maupun kanan, dan tahan sisip kolom seperti `XLOOKUP`).
+
+- **`VLOOKUP` (Kompatibel dengan semua versi Excel)**:
+  ```excel
+  =VLOOKUP(nilai_dicari, rentang_tabel, nomor_kolom_hasil, FALSE)
+  ```
+  Selalu isi argumen keempat dengan `FALSE` (pencarian persis / *exact match*). Kelemahannya: kolom pencarian harus berada di posisi paling kiri rentang tabel.
+
+## Contoh
+
+Melanjutkan workbook dari Pelajaran 2 (`A:I` data transaksi, `J = Total Bersih`, `K = Status Diskon`, serta parameter `O1:P3` di mana **`P3`** berisi `=DATE(2026,3,1)`):
+
+1. Menghitung **total unit terjual oleh sales Rina Wijaya di cabang Jakarta Selatan mulai 1 Maret 2026**:
+   ```excel
+   =SUMIFS(F2:F501, C2:C501, "Jakarta Selatan", I2:I501, "Rina Wijaya", B2:B501, ">="&$P$3)
+   ```
+   (Atau `">="&DATE(2026,3,1)` bila tanpa acuan sel parameter `$P$3`).
+
+2. Menghitung **berapa kali** transaksi tersebut terjadi pada seluruh periode:
+   ```excel
+   =COUNTIFS(C2:C501, "Jakarta Selatan", I2:I501, "Rina Wijaya")
+   ```
+
+3. Mengisi **kolom `L` (`Margin (%)`)** dengan mengambil data dari sheet **`Referensi_Kategori`** (kolom `A2:A5` = `Kategori`, `B2:B5` = `Margin (%)`) berdasarkan `Kategori` di `D2`:
+   - Di **Microsoft 365 / Excel 2021+**:
+     ```excel
+     =XLOOKUP(D2, Referensi_Kategori!$A$2:$A$5, Referensi_Kategori!$B$2:$B$5, 0)
+     ```
+   - Di **Excel 2019 ke bawah** (`INDEX-MATCH`):
+     ```excel
+     =INDEX(Referensi_Kategori!$B$2:$B$5, MATCH(D2, Referensi_Kategori!$A$2:$A$5, 0))
+     ```
+
+## Latihan
+
+> **Kelanjutan File Kerja:** Latihan ini **dilanjutkan langsung dari file Pelajaran 2** (kolom `J` sudah berisi `Total Bersih`, kolom `K` berisi `Status Diskon`, ringkasan Pelajaran 2 ada di `R2:S7`, dan parameter `O1:P3` sudah memuat `P3 = =DATE(2026,3,1)`).
+
+1. Buat sheet baru bernama **`Referensi_Kategori`** dengan kolom `A` = `Kategori` (`A1`) dan kolom `B` = `Margin (%)` (`B1`), lalu isi 4 baris data di `A2:B5`: `Elektronik` (`12%`), `Aksesoris Komputer` (`25%`), `Perlengkapan Kantor` (`30%`), dan `Perabot Kerja` (`20%`).
+2. Kembali ke lembar utama, buat kolom **`Margin (%)`** di **kolom `L`** (`L2:L501`) menggunakan `XLOOKUP` (atau `INDEX-MATCH` / `VLOOKUP` jika memakai Excel 2019 ke bawah) untuk menarik persentase margin dari sheet `Referensi_Kategori`.
+3. Buat kolom **`Perlu Tinjauan`** di **kolom `M`** (`M2:M501`) menggunakan kombinasi `IF` + `OR` agar menampilkan `"Perlu Tinjauan"` apabila `Diskon >= 0.15` **atau** `Jumlah >= 9`, dan `"Normal"` jika tidak memenuhi keduanya:
+   `=IF(OR(H2>=0.15, F2>=9), "Perlu Tinjauan", "Normal")`
+4. Di area ringkasan **`U2:W6`** (tulis judul kolom di `U1:W1`: `Cabang`, `Transaksi Diskon`, `Rata-rata Unit Elektronik >= 1 Mar`), isi 5 nama cabang di **`U2:U6`**:
+   - Di **`V2:V6`**, hitung **jumlah transaksi** tiap cabang yang memiliki `Diskon > 0` menggunakan `COUNTIFS`.
+   - Di **`W2:W6`**, hitung **rata-rata jumlah unit per transaksi** untuk kategori `"Elektronik"` sejak 1 Maret 2026 menggunakan `AVERAGEIFS` dengan kriteria tanggal **`">="&$P$3`**.
+
+<ExercisePlaceholder
+  exerciseType="excel"
+  title="Grid Excel Interaktif — Fungsi Bersyarat & Lookup"
+  description="Kerangka latihan interaktif untuk rumus SUMIFS, COUNTIFS, dan XLOOKUP di browser."
+/>
+
+## Ringkasan
+
+- `SUMIFS` dan `AVERAGEIFS` menaruh rentang nilai target di argumen pertama, `COUNTIFS` langsung dimulai dengan pasangan rentang-kriteria, sedangkan `SUMIF` (tunggal) menaruh `sum_range` di argumen paling akhir.
+- Gunakan `">="&$P$3` (dengan `P3` berisi `=DATE(2026,3,1)`) atau `">="&DATE(2026,3,1)` untuk kriteria tanggal di fungsi `-IFS` agar aman dari perbedaan format tanggal sistem.
+- `XLOOKUP` tidak tersedia di Excel 2019 ke bawah (gunakan `INDEX-MATCH` atau `VLOOKUP(..., FALSE)`), sedangkan `IFS` tidak tersedia di Excel 2016 ke bawah (gunakan *nested* `IF`).
+
+## Sumber Resmi
+
+- [Fungsi SUMIFS — Microsoft Support (bahasa Inggris)](https://support.microsoft.com/en-us/office/sumifs-function-c9e748f5-7ea7-455d-9406-611cebce642b)
+- [Fungsi COUNTIFS — Microsoft Support (bahasa Inggris)](https://support.microsoft.com/en-us/office/countifs-function-dda3dc6e-f74e-4aee-88bc-aa8c2a866842)
+- [Fungsi XLOOKUP — Microsoft Support (bahasa Inggris)](https://support.microsoft.com/en-us/office/xlookup-function-b7fd680e-6d10-43e6-84f9-88eae8bf5929)
+- [Mencari Nilai dengan VLOOKUP, INDEX, atau MATCH — Microsoft Support (bahasa Inggris)](https://support.microsoft.com/en-us/office/look-up-values-with-vlookup-index-or-match-68297403-7c3c-4150-9e3c-4d348188976b)

@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /proyek
+Disallow: /catatan
+Disallow: /profil
+
+Sitemap: https://datapath.vercel.app/sitemap.xml

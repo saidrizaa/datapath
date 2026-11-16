@@ -1,0 +1,6 @@
+{
+  "name": "DataPath — Platform Belajar Analisis Data & Portofolio",
+  "description": "Platform belajar mandiri analisis data berbahasa Indonesia dari Excel dasar hingga Python, SQL, machine learning, dan big data, sekaligus portofolio proyek analisis data.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

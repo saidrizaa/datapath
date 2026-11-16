@@ -1,0 +1,127 @@
+## Tujuan
+
+Setelah mempelajari materi ini, Anda diharapkan mampu:
+- Menggunakan fungsi agregasi dasar (`SUM`, `AVERAGE`, `COUNT`, `COUNTA`, `MIN`, `MAX`) dan pembulatan (`ROUND`).
+- Menulis keputusan bersyarat sederhana menggunakan fungsi logika `IF`.
+- Membedakan referensi sel **relatif**, **absolut** (`$P$1`), dan **campuran** (`$A2` atau `B$1`) saat menyalin rumus ke banyak baris.
+- Mengenali penyebab pesan error umum di Excel (`#DIV/0!`, `#VALUE!`, `#NAME?`, `#N/A`, `#REF!`) dan cara memperbaikinya.
+
+## Penjelasan
+
+> **Catatan Pengaturan Regional Excel (Koma vs Titik Koma):** Jika Excel di komputer Anda menggunakan pengaturan regional **Indonesia**, pemisah argumen di dalam rumus adalah **titik koma (`;`)** dan pemisah desimal memakai **koma (`,`)**, misalnya `0,1` atau `=IF(H2>0; "Ada Diskon"; "Tanpa Diskon")`. Seluruh contoh di platform ini ditulis memakai pemisah argumen **koma (`,`)** dan desimal **titik (`.`)** mengikuti standar internasional—silakan sesuaikan dengan pengaturan Excel Anda.
+
+Rumus di Excel selalu diawali tanda sama dengan (`=`). Di balik kesederhanaannya, kesalahan memahami cara Excel menyalin alamat sel adalah sumber bug paling sering pada laporan keuangan maupun penjualan.
+
+### 1. Fungsi Agregasi & Pembulatan Inti
+
+| Fungsi | Kegunaan Utama | Contoh Penulisan |
+| :--- | :--- | :--- |
+| `SUM` | Menjumlahkan nilai angka | `=SUM(F2:F501)` |
+| `AVERAGE` | Menghitung rata-rata aritmetika | `=AVERAGE(G2:G501)` |
+| `COUNT` | Menghitung jumlah sel berisi **angka** | `=COUNT(F2:F501)` |
+| `COUNTA` | Menghitung semua sel yang **tidak kosong** (termasuk teks) | `=COUNTA(A2:A501)` |
+| `MIN` / `MAX` | Mencari nilai terkecil / terbesar | `=MAX(G2:G501)` |
+| `ROUND` | Membulatkan angka ke jumlah desimal tertentu | `=ROUND(J2, 0)` |
+
+Perhatikan perbedaan `COUNT` dan `COUNTA`: jika Anda memakai `=COUNT(A2:A501)` pada kolom `ID Transaksi` yang bertipe teks (`TRX-2026-0001`), hasilnya adalah `0`. Gunakan `COUNTA` untuk menghitung jumlah baris teks.
+
+### 2. Fungsi Logika `IF`
+
+Fungsi `IF` mengembalikan satu nilai jika kondisi terpenuhi (`TRUE`), dan nilai lain jika tidak terpenuhi (`FALSE`):
+
+```excel
+=IF(kondisi, nilai_jika_benar, nilai_jika_salah)
+```
+
+Contoh untuk menandai status diskon di kolom `K` (mengacu pada kolom `Diskon` di `H2`):
+```excel
+=IF(H2>0, "Ada Diskon", "Tanpa Diskon")
+```
+
+### 3. Referensi Relatif, Absolut, dan Campuran
+
+Saat Anda menyalin rumus ke bawah atau ke samping, Excel secara bawaan menggeser alamat sel (**referensi relatif**). Untuk mengunci kolom atau baris, gunakan tanda dolar (`$`) atau tekan tombol `F4` saat kursor berada di alamat sel:
+
+- **Relatif (`F2 * G2`)**: Baik baris maupun kolom ikut bergeser saat disalin. Cocok untuk menghitung `Subtotal = Jumlah * Harga Satuan` di tiap baris.
+- **Absolut (`$P$1`, `$P$2`, `$P$3`)**: Baris dan kolom terkunci penuh. Cocok ketika seluruh baris transaksi mengacu ke area parameter tetap di sel **`O1:P3`**—yaitu tarif pajak PPN `11%` (`0.11`) di **`$P$1`**, potongan biaya admin `Rp 5.000` (`5000`) di **`$P$2`**, dan tanggal mulai periode (`=DATE(2026,3,1)`) di **`$P$3`**.
+- **Campuran (`$A2` atau `B$1`)**: Mengunci kolom saja (`$A2`) atau baris saja (`B$1`). Sangat berguna saat membuat tabel matriks perkalian atau ringkasan cabang vs bulan.
+
+### 4. Mengenali Pesan Error Umum di Excel
+
+| Kode Error | Penyebab Umum | Solusi Cepat |
+| :--- | :--- | :--- |
+| `#DIV/0!` | Pembagian dengan angka `0` atau sel kosong | Periksa sel penyebut, atau bungkus dengan `IF(penyebut=0, 0, ...)` |
+| `#VALUE!` | Operasi matematika menyentuh sel teks | Pastikan tidak ada angka yang tersimpan sebagai teks |
+| `#NAME?` | Salah eja nama fungsi atau lupa tanda kutip pada teks | Periksa ejaan (mis. `AVARAGE` seharusnya `AVERAGE`) dan tanda kutip `"..."` |
+| `#REF!` | Sel atau kolom acuan sudah dihapus | Tekan `Ctrl+Z` atau perbaiki referensi rentang yang hilang |
+| `#N/A` | Data pencarian tidak ditemukan | Umum muncul pada fungsi lookup seperti `VLOOKUP` / `XLOOKUP` |
+
+## Contoh
+
+Melanjutkan file kerja **`penjualan-toko.csv` dari Pelajaran 1** (kolom `A:I` berisi data asli transaksi), kita menyiapkan dua komponen di lembar utama:
+
+1. **Kolom tambahan di sebelah kanan data**:
+   - **Kolom `J` = `Total Bersih`** (memperhitungkan `Jumlah` di `F`, `Harga Satuan` di `G`, `Diskon` di `H`, tarif pajak di **`$P$1`**, dan biaya admin di **`$P$2`**)
+   - **Kolom `K` = `Status Diskon`**
+   *(Kolom `L` dan `M` sengaja dibiarkan kosong untuk diisi `Margin (%)` dan `Perlu Tinjauan` pada Pelajaran 3).*
+2. **Blok parameter terpisah di `O1:P3`**:
+   - `O1`: `Tarif Pajak` | **`P1`**: `0.11`
+   - `O2`: `Biaya Admin` | **`P2`**: `5000`
+   - `O3`: `Tanggal Mulai` | **`P3`**: `=DATE(2026,3,1)`
+
+Rumus `Total Bersih` di sel `J2`:
+```excel
+=ROUND(F2 * G2 * (1 - H2) * (1 + $P$1) - $P$2, 0)
+```
+Ketika rumus di `J2` disalin ke bawah hingga baris `J501`:
+- `F2`, `G2`, dan `H2` berubah relatif menjadi `F3`, `G3`, `H3`, dan seterusnya.
+- **`$P$1`** dan **`$P$2`** tetap terkunci menunjuk ke sel tarif pajak (`P1`) dan biaya admin (`P2`).
+
+Lalu di sel `K2`, kita isi kolom `Status Diskon`:
+```excel
+=IF(H2>0, "Ada Diskon", "Tanpa Diskon")
+```
+
+## Latihan
+
+> **Kelanjutan File Kerja:** Latihan ini **dilanjutkan dari file Excel Pelajaran 1** (`penjualan-toko.csv` pada kolom `A:I`). Simpan hasilnya di akhir latihan karena akan dipakai kembali pada Pelajaran 3.
+
+1. Siapkan area parameter terpisah di **`O1:P3`**:
+   - Tulis `Tarif Pajak` di `O1` dan isi `0.11` di **`P1`**
+   - Tulis `Biaya Admin` di `O2` dan isi `5000` di **`P2`**
+   - Tulis `Tanggal Mulai` di `O3` dan isi `=DATE(2026,3,1)` di **`P3`**
+2. Tambahkan kolom baru bernama **`Total Bersih`** di **kolom `J`** dengan rumus `=ROUND(F2*G2*(1-H2)*(1+$P$1)-$P$2, 0)` lalu salin ke seluruh 500 baris (`J2:J501`).
+3. Tambahkan kolom **`Status Diskon`** di **kolom `K`** menggunakan fungsi `IF`: `=IF(H2>0, "Ada Diskon", "Tanpa Diskon")` sehingga tampil `"Ada Diskon"` jika `Diskon > 0`, atau `"Tanpa Diskon"` jika `0`.
+4. Buat tabel ringkasan di area terpisah **`R2:S7`** (kolom `R` untuk label metrik, kolom `S` untuk rumus) guna menghitung:
+   - `R2/S2`: Total Unit Terjual (`=SUM(F2:F501)`)
+   - `R3/S3`: Rata-rata Total Bersih (`=AVERAGE(J2:J501)`)
+   - `R4/S4`: Nilai Total Bersih Tertinggi (`=MAX(J2:J501)`)
+   - `R5/S5`: Nilai Total Bersih Terendah (`=MIN(J2:J501)`)
+   - `R6/S6`: Jumlah Transaksi (`=COUNTA(A2:A501)`)
+   - `R7/S7`: Rata-rata Harga Satuan (`=ROUND(AVERAGE(G2:G501), 0)`)
+5. **Uji coba referensi relatif vs absolut**: Hapus tanda `$` pada `$P$1` dan `$P$2` di sel `J2` (menjadi `P1` dan `P2`), lalu tarik rumus tersebut turun ke sel `J3`. Amati apa yang terjadi: `P1` ikut bergeser menjadi **`P2` yang berisi `5000`**, sehingga tarif pajak terbaca `5000` (500.000%) dan hasil perkalian membengkak drastis—sementara `P2` bergeser ke **`P3`** yang berisi nomor seri tanggal. Setelah membuktikan efek pergeseran ini, kembalikan rumus ke **`$P$1`** dan **`$P$2`** dan salin ulang ke seluruh baris.
+
+### Latihan Interaktif di Browser
+
+Praktikkan penulisan rumus `Total Bersih` pada sel target kuning (`J2`, `J3`, `J4`) langsung di spreadsheet mini berikut:
+
+<GridExcel
+  lessonId="excel-02"
+  exerciseId="grid-01"
+  title="Hitung Total Bersih di Kolom J"
+  description="Isi tiga sel berwarna kuning (J2, J3, J4) dengan rumus Excel =ROUND(F2*G2*(1-H2)*(1+$P$1)-$P$2, 0) atau nilai angka hasil perhitungannya memakai parameter P1 = 0.11 dan P2 = 5000."
+  hint="Untuk baris 2, tuliskan =ROUND(F2*G2*(1-H2)*(1+$P$1)-$P$2, 0). Gunakan pola yang sama untuk J3 (memakai F3, G3, H3) dan J4 (memakai F4, G4, H4)."
+/>
+
+## Ringkasan
+
+- Gunakan `COUNT` untuk menghitung sel angka dan `COUNTA` untuk menghitung sel berisi teks atau angka yang tidak kosong.
+- Simpan parameter global terpisah di `O1:P3` (`$P$1` tarif pajak `0.11`, `$P$2` biaya admin `5000`, `$P$3` tanggal mulai `=DATE(2026,3,1)`) serta kunci dengan referensi absolut (`$`) agar alamat sel tidak bergeser saat rumus disalin ke baris lain.
+- Gunakan tombol `F4` untuk beralih cepat antara referensi relatif, absolut (`$P$1`), dan campuran (`$A2` / `B$1`).
+- Pesan error seperti `#NAME?` atau `#VALUE!` adalah petunjuk diagnostik—baca penyebabnya alih-alih langsung menghapus rumus.
+
+## Sumber Resmi
+
+- [Ringkasan Rumus di Excel — Microsoft Support (bahasa Inggris)](https://support.microsoft.com/en-us/office/overview-of-formulas-in-excel-ecfdc708-9162-49e8-b993-c311f47ca173)
+- [Beralih Antara Referensi Relatif, Absolut, dan Campuran — Microsoft Support (bahasa Inggris)](https://support.microsoft.com/en-us/office/switch-between-relative-absolute-and-mixed-references-dfec08cd-ae65-4f56-839e-5f0d8d0baca9)
+- [Fungsi IF — Microsoft Support (bahasa Inggris)](https://support.microsoft.com/en-us/office/if-function-69aed7c9-4e8a-4755-a9bc-aa8bbff73be2)

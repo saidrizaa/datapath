@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="DataPath — Belajar Analisis Data dari Excel hingga Big Data">
+  <rect width="1200" height="630" fill="#0f172a" />
+  <rect x="64" y="64" width="1072" height="502" rx="24" fill="#1e293b" stroke="#334155" stroke-width="2" />
+  <rect x="112" y="128" width="96" height="8" rx="4" fill="#3b82f6" />
+  <text x="112" y="210" fill="#f8fafc" font-family="Plus Jakarta Sans, DM Sans, system-ui, sans-serif" font-size="64" font-weight="800">
+    DataPath
+  </text>
+  <text x="112" y="282" fill="#cbd5e1" font-family="DM Sans, system-ui, sans-serif" font-size="34" font-weight="500">
+    Belajar Analisis Data dari Excel hingga Big Data
+  </text>
+  <text x="112" y="362" fill="#94a3b8" font-family="DM Sans, system-ui, sans-serif" font-size="24">
+    Roadmap 8 jalur terstruktur · Lab Python, SQL, dan Excel di browser · Portofolio Studi Kasus
+  </text>
+  <rect x="112" y="446" width="248" height="52" rx="10" fill="#1d4ed8" />
+  <text x="236" y="480" text-anchor="middle" fill="#ffffff" font-family="DM Sans, system-ui, sans-serif" font-size="20" font-weight="700">
+    datapath.id
+  </text>
+</svg>

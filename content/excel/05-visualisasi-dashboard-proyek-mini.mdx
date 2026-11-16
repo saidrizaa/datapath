@@ -1,0 +1,90 @@
+## Tujuan
+
+Setelah mempelajari materi ini, Anda diharapkan mampu:
+- Memilih jenis grafik yang tepat sesuai pertanyaan bisnis (perbandingan, tren waktu, atau komposisi).
+- Menghubungkan **kartu KPI** langsung ke PivotTable khusus (`Pivot_KPI`) menggunakan `GETPIVOTDATA` atau referensi Grand Total agar seluruh KPI merespons **Slicer** melalui **Report Connections**.
+- Menggunakan **Conditional Formatting (*Data Bars*)** dan **Sparklines** secara aman di atas tabel ringkasan statis berbasis `SUMIFS` (bukan langsung di atas PivotTable).
+- Menyusun **Dashboard Penjualan Satu Halaman**, menuliskan *insight* bisnis, dan menyiapkan dokumentasinya sebagai proyek mini portofolio Track 1.
+
+## Penjelasan
+
+> **Catatan Pengaturan Regional:** Rumus di bawah ini menggunakan pemisah argumen **koma (`,`)** dan desimal **titik (`.`)**. Jika Excel Anda memakai pengaturan regional **Indonesia**, ganti koma pemisah argumen dengan **titik koma (`;`)** (misalnya `=ROUND(F2*G2*(1-H2)*(1+$P$1)-$P$2; 0)`) serta desimal menggunakan **koma (`,`)**.
+
+Analisis yang akurat belum selesai sampai hasilnya mudah dipahami oleh pengambil keputusan. Grafik yang penuh warna mencolok atau salah jenis justru mengaburkan pesan utama.
+
+### 1. Memilih Jenis Grafik yang Tepat
+
+| Tujuan Komunikasi | Grafik yang Disarankan | Hindari |
+| :--- | :--- | :--- |
+| **Membandingkan nilai antar-kategori** (misal omzet 5 cabang) | **Bar / Column Chart** (batang horizontal jika nama kategori panjang) | Pie chart dengan banyak irisan |
+| **Melihat tren dari waktu ke waktu** (misal penjualan Jan–Jun) | **Line Chart** dengan sumbu Y dimulai dari nol bila membandingkan besaran | Mengacak urutan tanggal |
+| **Menunjukkan proporsi sederhana** (2–4 segmen saja) | **Stacked Bar** atau **Donut Chart** sederhana | Grafik 3D yang mendistorsi sudut |
+
+Kurangi gangguan visual (*chartjunk*): hapus garis kisi (*gridlines*) yang terlalu tebal, gunakan satu warna aksen untuk menyorot kategori terbaik atau bermasalah, dan tulis judul grafik yang merangkum temuan (bukan sekadar `"Grafik Penjualan"`).
+
+### 2. Mengapa KPI Harus Berasal dari PivotTable, Bukan `SUM` Biasa
+
+Kesalahan umum pemula adalah menulis rumus `=SUM(tbl_penjualan[Total Bersih])` pada kartu KPI di dashboard. Rumus `SUM` langsung membaca tabel sumber **tidak ikut berubah saat pengguna mengklik Slicer**, sehingga angka KPI akan tidak sinkron dengan grafik PivotChart!
+
+Solusi profesional:
+1. **Satu Sumber Data untuk Semua PivotTable:** Sebuah **Slicer hanya bisa dihubungkan ke beberapa PivotTable sekaligus apabila PivotTable-PivotTable tersebut berbagi sumber data (*data source*) yang sama**. Jika satu PivotTable mengambil data dari `tbl_penjualan` sementara PivotTable lain memakai rentang atau tabel berbeda, keduanya memakai *Pivot Cache* terpisah sehingga tidak dapat dikendalikan oleh satu Slicer yang sama di menu **Slicer > Report Connections**.
+2. Buat satu PivotTable khusus bernama **`Pivot_KPI`** di lembar kalkulasi (`Olahan_Pivot`) dari tabel `tbl_penjualan` yang sama, berisi `Sum of Total Bersih`, `Sum of Jumlah`, dan `Count of ID Transaksi` (tanpa field di *Rows* maupun *Columns*, cukup nilai *Values* saja).
+3. Pada kartu KPI di lembar `Dashboard`, tarik angka tersebut memakai **`GETPIVOTDATA`** atau referensi langsung ke sel hasil `Pivot_KPI` (Grand Total). Untuk menghitung **`Rata-rata Nilai per Transaksi`**, bagi KPI `Total Omzet Bersih` dengan `Jumlah Transaksi` (`= Sel_KPI_Omzet / Sel_KPI_Transaksi`) agar bobotnya selalu akurat ketika cabang disaring oleh Slicer.
+
+### 3. Conditional Formatting & Sparklines di Tabel Ringkasan `SUMIFS`
+
+Sebelum atau di samping grafik besar, Anda bisa menampilkan visualisasi ringkas di dalam sel tabel:
+- **Conditional Formatting (`Home > Conditional Formatting > Data Bars`)**: Memberi batang proporsional di dalam sel angka untuk membandingkan kinerja antar-kategori.
+- **Sparklines (`Insert > Sparklines`)**: Grafik garis mini di dalam satu sel untuk menunjukkan tren 6 bulan (Jan–Jun) pada masing-masing kategori atau cabang.
+
+> **Penting — Letakkan di Tabel `SUMIFS`, Bukan di Atas PivotTable:** Jangan menaruh Sparklines atau rentang Data Bars statis langsung di sebelah sel PivotTable. Saat Slicer diklik, jumlah baris atau posisi kolom PivotTable bisa menyusut atau bergeser sehingga Sparkline menunjuk sel kosong atau aturan formatnya berantakan. Buatlah **tabel ringkasan terstruktur dengan `SUMIFS`** (4 kategori produk di baris tetap × 6 bulan di kolom tetap), lalu pasang **Data Bars** dan **Sparklines** pada tabel `SUMIFS` tersebut.
+
+## Contoh
+
+Untuk membangun **Dashboard Penjualan Toko 2026** dengan melanjutkan struktur workbook dari Pelajaran 2–4 (`Data_Bersih` memakai tabel `tbl_penjualan` kolom `A:M` dan parameter `O1:P3`):
+
+1. Pisahkan tiga lembar kerja: **`Data_Bersih`**, **`Olahan_Pivot`**, dan **`Dashboard`**.
+2. Pada `Olahan_Pivot`, buat **empat PivotTable** yang seluruhnya bersumber dari **`tbl_penjualan`**:
+   - `Pivot_KPI`: `Sum of Total Bersih`, `Sum of Jumlah`, `Count of ID Transaksi` (untuk 4 kartu KPI atas).
+   - `Pivot_Tren_Bulan`: `Tanggal` dikelompokkan per **Months & Years** (Rows) vs `Total Bersih` (Values) → jadikan **Line PivotChart**.
+   - `Pivot_Cabang`: `Cabang` (Rows, diurutkan terbesar) vs `Total Bersih` (Values) → jadikan **Bar PivotChart**.
+   - `Pivot_Kategori`: `Kategori` (Rows) vs `Total Bersih` dan `Jumlah` (Values).
+   Di bawah keempat PivotTable (atau di area kolom terpisah di `Olahan_Pivot` / `Dashboard`), susun **tabel ringkasan statis berbasis `SUMIFS`** (4 kategori × kolom Jan–Jun + kolom total) untuk menampung **Data Bars** dan **Sparklines**.
+3. Pindahkan grafik dan tabel `SUMIFS` ke lembar `Dashboard`, hubungkan kartu KPI ke `Pivot_KPI` lewat `GETPIVOTDATA` / referensi Grand Total, matikan tombol abu-abu PivotChart (*Field Buttons > Hide All*), sisipkan **Slicer `Cabang`**, lalu buka **Slicer > Report Connections** dan centang seluruh empat PivotTable (`Pivot_KPI`, `Pivot_Tren_Bulan`, `Pivot_Cabang`, `Pivot_Kategori`).
+
+## Latihan (Proyek Mini Track 1)
+
+> **Kelanjutan File Kerja:** Proyek mini ini **melanjutkan file kerja Pelajaran 2–4** yang menggunakan dataset **`penjualan-toko.csv`** (500 baris, kolom `A:I`, `J = Total Bersih`, `K = Status Diskon`, `L = Margin (%)`, `M = Perlu Tinjauan`, serta parameter `O1:P3`: `P1 = 0.11`, `P2 = 5000`, `P3 = =DATE(2026,3,1)`).
+
+1. Pastikan kolom `Total Bersih` di `J2:J501` pada lembar `Data_Bersih` menggunakan rumus yang sama persis dengan Pelajaran 2:
+   `=ROUND(F2*G2*(1-H2)*(1+$P$1)-$P$2, 0)`
+   dan pastikan seluruh data berbentuk **Excel Table** bernama `tbl_penjualan`.
+2. Di lembar `Olahan_Pivot`, bangun seluruh PivotTable dari **sumber data yang sama (`tbl_penjualan`)**:
+   - **`Pivot_KPI`** (khusus kartu KPI: `Sum of Total Bersih`, `Sum of Jumlah`, `Count of ID Transaksi`)
+   - **Pivot tren bulanan** (`Tanggal` di-group *Months & Years*) + **Pivot perbandingan 5 cabang**.
+3. Susun lembar **`Dashboard`** satu halaman yang memuat:
+   - **4 kartu KPI utama** di bagian atas (`Total Omzet Bersih`, `Total Unit Terjual`, `Jumlah Transaksi`, dan `Rata-rata Nilai per Transaksi`) yang mengambil angka dari `Pivot_KPI` (memakai `GETPIVOTDATA` atau referensi Grand Total + rasio `Omzet / Transaksi`).
+   - **1 Line Chart** tren bulanan + **1 Bar Chart** peringkat cabang.
+   - **1 tabel ringkas performa 4 kategori** yang dibangun dengan **`SUMIFS`** (memuat omzet Jan–Jun) lalu dilengkapi **Data Bars** (Conditional Formatting) dan **Sparklines** tren 6 bulan.
+   - **Slicer `Cabang`** yang dihubungkan ke semua PivotTable (termasuk `Pivot_KPI`) lewat **Report Connections**.
+4. Uji Slicer dengan memilih cabang `Surabaya` lalu `Bandung` untuk memastikan **seluruh kartu KPI dan kedua grafik berubah serentak**.
+5. **Penyelesaian Portofolio**: Tuliskan **3 *insight* temuan utama** (berbasis angka nyata dari dashboard) dan **1 rekomendasi bisnis konkret** di kotak catatan bawah dashboard, lalu ambil **tangkapan layar (*screenshot*)** satu halaman penuh dashboard untuk disimpan ke dokumentasi portofolio Anda.
+
+<ExercisePlaceholder
+  exerciseType="python"
+  title="Editor Python — Ringkasan KPI Penjualan"
+  description="Kerangka latihan analisis ringkas metrik penjualan menggunakan Python (pandas) di browser."
+/>
+
+## Ringkasan
+
+- Gunakan **Bar/Column Chart** untuk perbandingan kategori dan **Line Chart** untuk tren waktu; hindari efek 3D yang mengganggu akurasi pembacaan.
+- Kartu KPI dashboard harus membaca **PivotTable khusus (`Pivot_KPI`)** melalui `GETPIVOTDATA` atau Grand Total dari sumber data yang sama agar ikut berubah saat Slicer diklik lewat **Report Connections**.
+- Pasang **Data Bars** dan **Sparklines** di atas tabel ringkasan statis berbasis **`SUMIFS`**, bukan langsung di atas PivotTable, supaya struktur sel tidak bergeser saat filter berubah.
+- Akhiri proyek dashboard dengan **3 *insight* + 1 rekomendasi** serta **screenshot** satu halaman sebagai bukti portofolio.
+
+## Sumber Resmi
+
+- [Membuat Grafik dari Awal hingga Selesai — Microsoft Support (bahasa Inggris)](https://support.microsoft.com/en-us/office/create-a-chart-from-start-to-finish-0baf399e-dd61-4e18-8a73-b3fd5d5680c2)
+- [Menggunakan Conditional Formatting untuk Menyorot Informasi — Microsoft Support (bahasa Inggris)](https://support.microsoft.com/en-us/office/use-conditional-formatting-to-highlight-information-in-excel-fed60dfa-1d3f-4e13-9ecb-f1951ff89d7f)
+- [Menggunakan Sparklines untuk Menampilkan Tren Data — Microsoft Support (bahasa Inggris)](https://support.microsoft.com/en-us/office/use-sparklines-to-show-data-trends-1474e169-008c-4783-926b-5c60e620f5ca)
