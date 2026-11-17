@@ -32,6 +32,8 @@ export interface CaseStudyPreview {
   problem: string;
   method: string;
   tools: string[];
+  highlights?: string[];
+  accentTone?: 'tech' | 'social';
 }
 
 export interface TestimonialItem {
@@ -346,26 +348,38 @@ export const TRACKS: TrackItem[] = [
 
 export const CASE_STUDIES: CaseStudyPreview[] = [
   {
-    id: 'cs-inventory',
-    title: 'Optimasi Persediaan & Prediksi Permintaan Ritel FMCG',
-    domain: 'Ritel & Rantai Pasok',
-    metricHighlight: '+24% Efisiensi Stok dalam 3 Bulan',
+    id: 'cs-lstm-pltu',
+    title: 'Peramalan Permintaan Suku Cadang Kritis dengan LSTM',
+    domain: 'Industri Energi',
+    metricHighlight: 'MASE 0,8821 — Lebih Akurat dari Naive Forecast',
     problem:
-      'Tingginya kejadian kehabisan stok (stockout) pada produk cepat laku sekaligus penumpukan barang lambat terjual di 18 gudang cabang.',
+      'Peramalan (demand forecasting) suku cadang kritis di PLTU Tanjung Jati B menghadapi tantangan data lumpy dan intermittent dengan 73,7% nilai nol dari 71 bulan historis.',
     method:
-      'Pembersihan riwayat penjualan 24 bulan dengan Power Query dan pandas, segmentasi ABC-XYZ, serta perhitungan reorder point dinamis.',
-    tools: ['Excel Power Query', 'SQL', 'pandas'],
+      'Arsitektur shallow LSTM (1 hidden layer, 8 unit) dengan Huber Loss dan Early Stopping; perbandingan RobustScaler vs MinMaxScaler; evaluasi menggunakan MASE pada 20 item suku cadang kritis.',
+    tools: ['Python', 'Keras', 'LSTM'],
+    highlights: [
+      'MASE agregat 0,8821 (di bawah ambang 1,0 — mengalahkan naive forecast)',
+      'RobustScaler unggul pada 15 dari 20 item (75%) untuk data dengan outlier ekstrem',
+      'Arsitektur shallow terbukti efektif mencegah overfitting pada dataset kecil (n=71)',
+    ],
+    accentTone: 'tech',
   },
   {
-    id: 'cs-churn',
-    title: 'Deteksi Dini Risiko Churn Pelanggan SaaS B2B',
-    domain: 'Produk Digital & Retensi',
-    metricHighlight: '87,4% ROC-AUC pada Uji Validasi',
+    id: 'cs-kmeans-disabilitas',
+    title: 'Clustering Penduduk Penyandang Disabilitas Jawa Barat dengan K-Means',
+    domain: 'Data Mining',
+    metricHighlight: 'Segmentasi Data untuk Kebijakan Tepat Sasaran',
     problem:
-      'Tim customer success kesulitan memprioritaskan akun berisiko tinggi karena sinyal penurunan aktivitas tersebar di log penggunaan.',
+      'Implementasi data mining clustering untuk mengelompokkan penduduk penyandang disabilitas di Provinsi Jawa Barat guna mendukung pengambilan keputusan berbasis data.',
     method:
-      'Agregasi perilaku mingguan menggunakan SQL Window Functions dan pemodelan klasifikasi Gradient Boosting di scikit-learn.',
-    tools: ['SQL', 'Python', 'scikit-learn'],
+      'Algoritma K-Means clustering; analisis karakteristik per cluster (jenis disabilitas, usia, lokasi geografis); validasi dan pembersihan data anomali.',
+    tools: ['Python', 'scikit-learn', 'K-Means'],
+    highlights: [
+      'Identifikasi cluster homogen dengan karakteristik disabilitas yang berbeda',
+      'Rekomendasi alokasi sumber daya dan program pemerintah per cluster',
+      'Validasi data meningkatkan kualitas dataset secara keseluruhan',
+    ],
+    accentTone: 'social',
   },
 ];
 

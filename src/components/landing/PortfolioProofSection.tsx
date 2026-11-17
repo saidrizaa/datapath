@@ -3,15 +3,15 @@ import { User, ArrowUpRight } from 'lucide-react';
 import { CASE_STUDIES, TESTIMONIALS } from '../../data/curriculum';
 import { Card } from '../ui/card';
 
-const CREATOR_PHOTO_URL = '/src/assets/images/creator_portrait_1794820383510.jpg';
+const CREATOR_PHOTO_URL = '/assets/aistudio/06_Terowongan_Kuno_Beskap_Klasik_fc89a32b.jpg';
 
 const CORE_SKILLS = [
+  'Python (LSTM, scikit-learn)',
   'Microsoft Excel & Power Query',
-  'PostgreSQL & BigQuery',
-  'Python, pandas & NumPy',
-  'Uji Hipotesis & A/B Testing',
-  'scikit-learn',
-  'Polars & PySpark',
+  'Data Mining & Clustering',
+  'Time Series Forecasting',
+  'pandas & NumPy',
+  'Visualisasi Data',
 ];
 
 export function PortfolioProofSection() {
@@ -24,33 +24,33 @@ export function PortfolioProofSection() {
     >
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         {/* Bagian 1: Profil Pembuat & Keahlian */}
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-center">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-start">
           <div className="lg:col-span-4">
             <Card className="overflow-hidden p-4">
               <div className="aspect-square w-full overflow-hidden rounded-lg bg-slate-100 dark:bg-slate-800">
                 {!imgError ? (
                   <img
                     src={CREATOR_PHOTO_URL}
-                    alt="Foto profil pembuat DataPath sedang bekerja dengan laptop di ruang kerja"
+                    alt="Foto profil Mukhamad Said Riza Zudi mengenakan beskap klasik"
                     loading="lazy"
                     decoding="async"
                     referrerPolicy="no-referrer"
                     onError={() => setImgError(true)}
-                    className="h-full w-full object-cover"
+                    className="h-full w-full object-cover object-[50%_30%]"
                   />
                 ) : (
                   <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400">
                     <User className="h-10 w-10" aria-hidden="true" />
-                    <span className="text-xs font-medium">Profil Pengajar & Analis Data</span>
+                    <span className="text-xs font-medium">Profil Analis Data</span>
                   </div>
                 )}
               </div>
               <div className="mt-4 space-y-1">
                 <h3 className="font-display text-lg font-bold text-slate-900 dark:text-slate-100">
-                  Riza Said
+                  Mukhamad Said Riza Zudi
                 </h3>
                 <p className="text-sm text-slate-600 dark:text-slate-400">
-                  Senior Data Analyst & Kurator Kurikulum DataPath
+                  Junior Data Analyst & Mahasiswa Sistem Informasi
                 </p>
               </div>
             </Card>
@@ -68,13 +68,13 @@ export function PortfolioProofSection() {
                 Disusun dari Pengalaman Proyek Analisis Data Dunia Nyata
               </h2>
               <p className="text-base leading-relaxed text-slate-600 dark:text-slate-300">
-                DataPath juga berfungsi sebagai etalase proyek pribadi saya. Setiap materi ajar dibangun berdasarkan tantangan nyata yang sering muncul di perusahaan ritel, logistik, dan produk digital—mulai dari merapikan spreadsheet berantakan hingga membangun pipeline data skala besar.
+                DataPath juga berfungsi sebagai etalase proyek pribadi saya. Setiap materi dan studi kasus dibangun dari tantangan analisis data nyata—mulai dari peramalan permintaan suku cadang kritis di sektor energi hingga clustering data sosial untuk mendukung kebijakan berbasis data.
               </p>
             </div>
 
             <div className="border-t border-slate-200 pt-5 dark:border-slate-800">
               <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                Keahlian Utama yang Dibahas & Dipraktikkan
+                Keahlian Utama
               </p>
               <p className="mt-2 text-sm leading-relaxed text-slate-800 dark:text-slate-200">
                 {CORE_SKILLS.join(' · ')}
@@ -83,33 +83,55 @@ export function PortfolioProofSection() {
 
             {/* 2 Studi Kasus Unggulan */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {CASE_STUDIES.map((cs) => (
-                <Card key={cs.id} className="flex flex-col justify-between p-6">
-                  <div className="space-y-3">
-                    <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                      {cs.domain} · {cs.tools.join(' / ')}
-                    </p>
-                    <h3 className="font-display text-lg font-semibold leading-snug text-slate-900 dark:text-slate-100">
-                      {cs.title}
-                    </h3>
-                    <p className="font-mono text-sm font-semibold text-blue-700 tabular-nums dark:text-blue-400">
-                      {cs.metricHighlight}
-                    </p>
-                    <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-                      {cs.problem}
-                    </p>
-                  </div>
+              {CASE_STUDIES.map((cs) => {
+                const isSocial = cs.accentTone === 'social';
+                const cardAccentClass = isSocial
+                  ? 'border-t-2 border-t-emerald-600 dark:border-t-emerald-400'
+                  : 'border-t-2 border-t-indigo-600 dark:border-t-indigo-400';
+                const highlightTextClass = isSocial
+                  ? 'text-emerald-700 dark:text-emerald-400'
+                  : 'text-indigo-700 dark:text-indigo-400';
 
-                  <div className="mt-4 border-t border-slate-200 pt-3 dark:border-slate-800">
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      <span className="font-semibold text-slate-700 dark:text-slate-300">
-                        Metode:{' '}
-                      </span>
-                      {cs.method}
-                    </p>
-                  </div>
-                </Card>
-              ))}
+                return (
+                  <Card key={cs.id} className={`flex flex-col justify-between p-6 ${cardAccentClass}`}>
+                    <div className="space-y-3">
+                      <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                        {cs.domain} · {cs.tools.join(' / ')}
+                      </p>
+                      <h3 className="font-display text-lg font-semibold leading-snug text-slate-900 dark:text-slate-100">
+                        {cs.title}
+                      </h3>
+                      <p className={`font-mono text-sm font-semibold tabular-nums ${highlightTextClass}`}>
+                        {cs.metricHighlight}
+                      </p>
+                      <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                        {cs.problem}
+                      </p>
+                      {cs.highlights && cs.highlights.length > 0 && (
+                        <div className="space-y-1.5 pt-1">
+                          <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                            Hasil utama:
+                          </p>
+                          <ul className="list-disc space-y-1 pl-4 text-xs leading-relaxed text-slate-600 dark:text-slate-400">
+                            {cs.highlights.map((item) => (
+                              <li key={item}>{item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="mt-4 border-t border-slate-200 pt-3 dark:border-slate-800">
+                      <p className="text-xs leading-relaxed text-slate-500 dark:text-slate-400">
+                        <span className="font-semibold text-slate-700 dark:text-slate-300">
+                          Metode:{' '}
+                        </span>
+                        {cs.method}
+                      </p>
+                    </div>
+                  </Card>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -126,7 +148,7 @@ export function PortfolioProofSection() {
               </p>
             </div>
             <a
-              href="https://github.com"
+              href="https://github.com/saidrizaa"
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-1 text-sm font-semibold text-blue-700 hover:underline dark:text-blue-400"
