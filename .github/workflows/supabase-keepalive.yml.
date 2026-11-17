@@ -1,0 +1,39 @@
+name: Supabase Keep-Alive
+
+on:
+  schedule:
+    # Berjalan otomatis setiap 3 hari sekali pukul 02:00 UTC (09:00 WIB)
+    # agar database Supabase Free Plan tidak terkena auto-pause setelah 7 hari idle.
+    - cron: '0 2 */3 * *'
+  workflow_dispatch:
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validasi secrets Supabase
+        run: |
+          if [ -z "${{ secrets.SUPABASE_URL }}" ] || [ -z "${{ secrets.SUPABASE_ANON_KEY }}" ]; then
+            echo "::error::Secrets SUPABASE_URL dan SUPABASE_ANON_KEY belum diatur di Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
+
+      - name: Kirim query ringan ke Supabase REST API
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          BASE_URL="${SUPABASE_URL%/}"
+          STATUS_CODE=$(curl -sS -o /tmp/supabase_resp.txt -w "%{http_code}" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+            "${BASE_URL}/rest/v1/projects?select=id&limit=1")
+
+          echo "HTTP Status: ${STATUS_CODE}"
+          if [ "${STATUS_CODE}" -lt 200 ] || [ "${STATUS_CODE}" -ge 300 ]; then
+            echo "::error::Keep-alive Supabase gagal dengan HTTP ${STATUS_CODE}"
+            cat /tmp/supabase_resp.txt || true
+            exit 1
+          fi
+
+          echo "Supabase keep-alive berhasil pada $(date -u '+%Y-%m-%d %H:%M:%S UTC')."
